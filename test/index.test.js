@@ -25,6 +25,7 @@ describe('Queue', function() {
 
   afterEach(function() {
     queue.stop();
+    Schedule.resetClock();
   });
 
   it('should run a task', function() {
@@ -159,5 +160,26 @@ describe('Queue', function() {
     assert(queue.fn.calledTwice);
     assert(queue.fn.calledWith('a'));
     assert(queue.fn.calledWith('b'));
+  });
+});
+
+describe('end-to-end', function() {
+  var queue;
+  beforeEach(function() {
+    queue = new Queue('e2e_test', function(_, cb) { cb(); });
+  });
+
+  afterEach(function() {
+    queue.stop();
+  });
+
+  it('should run end-to-end', function(done) {
+    queue.fn = function(item, cb) {
+      cb();
+      done();
+    };
+    queue.start();
+
+    queue.addItem({ a: 'b' });
   });
 });
