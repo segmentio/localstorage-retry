@@ -19,6 +19,7 @@
   "dependencies": {
     "@ndhoule/each": "^2.0.1",
     "@ndhoule/keys": "^2.0.0",
+    "component-emitter": "^1.2.1",
     "debug": "^0.7.4",
     "json3": "^3.3.2",
     "uuid": "^3.0.1"

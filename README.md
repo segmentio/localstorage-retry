@@ -10,19 +10,22 @@ Each page maintains its own list of queued and in-progress tasks, while constant
 
 ## API
 
-### new Queue(name, processFunc(item, done(err)))
+### new Queue(name, processFunc(item, done(err, res)))
 
 ```javascript
 var Queue = require('@segment/localstorage-retry');
 
 var queue = new Queue('my_queue_name', function process(item, done) {
-  try {
-    console.log(item);
-    done();
-  } catch (e) {
-    done(e);
-  }
+  sendAsync(item, function(err, res) {
+    if (err) return done(err);
+    done(null, res);
+  });
 });
+
+queue.on('success', function(item, res) {
+  console.log('successfully sent %O with response %O', item, res);
+});
+
 queue.start();
 ```
 
@@ -44,6 +47,28 @@ queue.getDelay = function(attemptNumber) {
 }
 ```
 
+### .shouldRetry `(item, attemptNumber, error) -> boolean`
+
+Can be overridden to provide custom logic for whether to requeue the item. (Defaults to `true`.)
+
+```javascript
+// based on something in the item
+queue.shouldRetry = function(item, attemptNumber, error)) {
+  return new Date(item.timestamp) - new Date() < 86400000;
+}
+
+// max attempts
+queue.shouldRetry = function(item, attemptNumber, error)) {
+  if (attemptNumber <= 2) return true;
+  return false;
+}
+
+// selective error handling
+queue.shouldRetry = function(item, attemptNumber, error)) {
+  return error.code !== '429';
+}
+```
+
 ### .start
 
 Starts the queue processing items. Anything added before calling `.start` will be queued until `.start` is called.
@@ -58,6 +83,35 @@ Stops the queue from processing. Any retries queued may be picked claimed by ano
 
 ```javascript
 queue.stop();
+```
+
+## Emitter
+
+You can listen for `success` and `error` events, one of which is emitted with each invocation of the `processFunc`. If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
+
+### `success` (processed successfully)
+
+```javascript
+queue.on('success', function(item, res) {
+  console.log('successfully flushed: %O', res);
+})
+```
+
+### `error` (error in processing)
+
+```javascript
+queue.on('error', function(item, error) {
+  console.warn('error processing %O: %O... will retry', item, error);
+})
+```
+
+### `discard` (item abandoned)
+
+```javascript
+queue.on('discard', function(item, attempts) {
+  // eek
+  console.error('discarding message %O after %d attempts', item, attempts);
+})
 ```
 
 ###
