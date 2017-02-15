@@ -209,11 +209,12 @@ describe('events', function() {
     queue.stop();
   });
 
-  it('should emit item and res in success events', function(done) {
+  it('should emit processed with response, and item', function(done) {
     queue.fn = function(item, cb) {
       cb(null, { text: 'ok' });
     };
-    queue.on('success', function(item, res) {
+    queue.on('processed', function(err, res, item) {
+      if (err) done(err);
       assert(item.a === 'b');
       assert(res.text === 'ok');
       done();
@@ -222,19 +223,17 @@ describe('events', function() {
     queue.addItem({ a: 'b' });
   });
 
-  it('should emit error events with item and error', function(done) {
+  it('should include errors in callback to processed event', function(done) {
     queue.fn = function(item, cb) {
       cb(new Error('fail'));
     };
-    queue.on('error', function(item, error) {
-      try {
-        assert(item.a === 'c');
-        assert(error.message === 'fail');
-        done();
-      } catch (e) {
-        done(e);
-      }
+
+    queue.on('processed', function(err, res, item) {
+      assert(item.a === 'c');
+      assert(err && err.message === 'fail');
+      done();
     });
+
     queue.start();
     queue.addItem({ a: 'c' });
   });
@@ -281,7 +280,7 @@ describe('end-to-end', function() {
         cb();
       }, 1000);
     };
-    queue.on('success', function() {
+    queue.on('processed', function() {
       done();
     });
 

@@ -87,21 +87,18 @@ queue.stop();
 
 ## Emitter
 
-You can listen for `success` and `error` events, one of which is emitted with each invocation of the `processFunc`. If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
+You can listen for `processed` events, of which is emitted with each invocation of the `processFunc` and passed any error, response provided along with the item itself. 
 
-### `success` (processed successfully)
+If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
 
-```javascript
-queue.on('success', function(item, res) {
-  console.log('successfully flushed: %O', res);
-})
-```
-
-### `error` (error in processing)
+### `processed` (processed )
 
 ```javascript
-queue.on('error', function(item, error) {
-  console.warn('error processing %O: %O... will retry', item, error);
+queue.on('processed', function(err, res, item) {
+  if (err) {
+    console.warn('error processing %O: %O... will retry', item, err);
+  } 
+  console.log('successfully flushed %O: %O', item, res);
 })
 ```
 
