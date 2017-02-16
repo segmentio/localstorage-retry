@@ -22,7 +22,10 @@ var queue = new Queue('my_queue_name', function process(item, done) {
   });
 });
 
-queue.on('success', function(item, res) {
+queue.on('processed', function(err, res, item) {
+  if (err) {
+    return console.warn('error processing %O: %O... will retry', item, err);
+  }
   console.log('successfully sent %O with response %O', item, res);
 });
 
