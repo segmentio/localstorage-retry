@@ -23,9 +23,7 @@ var queue = new Queue('my_queue_name', function process(item, done) {
 });
 
 queue.on('processed', function(err, res, item) {
-  if (err) {
-    return console.warn('error processing %O: %O... will retry', item, err);
-  }
+  if (err) return console.warn('processing %O failed with error %O', item, err);
   console.log('successfully sent %O with response %O', item, res);
 });
 
@@ -55,20 +53,17 @@ queue.getDelay = function(attemptNumber) {
 Can be overridden to provide custom logic for whether to requeue the item. (Defaults to `true`.)
 
 ```javascript
-// based on something in the item
 queue.shouldRetry = function(item, attemptNumber, error)) {
-  return new Date(item.timestamp) - new Date() < 86400000;
-}
-
-// max attempts
-queue.shouldRetry = function(item, attemptNumber, error)) {
-  if (attemptNumber <= 2) return true;
-  return false;
-}
-
-// selective error handling
-queue.shouldRetry = function(item, attemptNumber, error)) {
-  return error.code !== '429';
+  // based on something in the item itself
+  if (new Date(item.timestamp) - new Date() > 86400000) return false;
+  
+  // max attempts
+  if (attemptNumber > 3) return false;
+  
+  // selective error handling
+  if (error.code === '429') return false;
+  
+  return true;
 }
 ```
 
@@ -94,27 +89,22 @@ You can listen for `processed` events, of which is emitted with each invocation 
 
 If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
 
-### `processed` (processed )
+### `processed`
 
 ```javascript
 queue.on('processed', function(err, res, item) {
-  if (err) {
-    console.warn('error processing %O: %O... will retry', item, err);
-  } 
-  console.log('successfully flushed %O: %O', item, res);
-})
+  if (err) return console.warn('processing %O failed with error %O', item, err);
+  console.log('successfully sent %O with response %O', item, res);
+});
 ```
 
-### `discard` (item abandoned)
+### `discard`
 
 ```javascript
 queue.on('discard', function(item, attempts) {
-  // eek
   console.error('discarding message %O after %d attempts', item, attempts);
 })
 ```
-
-###
 
 ## License
 
