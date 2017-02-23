@@ -85,7 +85,7 @@ queue.stop();
 
 ## Emitter
 
-You can listen for `processed` events, of which is emitted with each invocation of the `processFunc` and passed any error, response provided along with the item itself. 
+You can listen for `processed` events, which are emitted with each invocation of the `processFunc` and passed any error or response provided along with the item itself. 
 
 If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
 
