@@ -215,8 +215,8 @@ describe('events', function() {
     };
     queue.on('processed', function(err, res, item) {
       if (err) done(err);
-      assert(item.a === 'b');
-      assert(res.text === 'ok');
+      assert.equal(item.a, 'b');
+      assert.equal(res.text, 'ok');
       done();
     });
     queue.start();
@@ -229,8 +229,8 @@ describe('events', function() {
     };
 
     queue.on('processed', function(err, res, item) {
-      assert(item.a === 'c');
-      assert(err && err.message === 'fail');
+      assert.equal(item.a, 'c');
+      assert.equal(err && err.message, 'fail');
       done();
     });
 
@@ -246,8 +246,8 @@ describe('events', function() {
       return attemptNumber < 2;
     };
     queue.on('discard', function(item, attempts) {
-      assert(item.a === 'b');
-      assert(attempts === 2);
+      assert.equal(item.a, 'b');
+      assert.equal(attempts, 2);
       done();
     });
     queue.start();
