@@ -1,6 +1,6 @@
 {
   "name": "@segment/localstorage-retry",
-  "version": "0.0.2",
+  "version": "1.0.1",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
