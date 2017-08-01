@@ -53,7 +53,7 @@ queue.getDelay = function(attemptNumber) {
 Can be overridden to provide custom logic for whether to requeue the item. (Defaults to `true`.)
 
 ```javascript
-queue.shouldRetry = function(item, attemptNumber, error)) {
+queue.shouldRetry = function(item, attemptNumber, error) {
   // based on something in the item itself
   if (new Date(item.timestamp) - new Date() > 86400000) return false;
   
