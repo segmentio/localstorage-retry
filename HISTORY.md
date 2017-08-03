@@ -1,4 +1,9 @@
 
+1.0.3 / 2017-08-02
+==================
+
+ * Default *all* localstorage queue retrievals to empty data structures
+
 1.0.2 / 2017-08-02
 ==================
 
