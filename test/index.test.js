@@ -1,8 +1,8 @@
 'use strict';
 
 var Queue = require('../');
-var store = require('../lib/store');
-var localStorage = require('../lib/localStorage').localStorage;
+var Store = require('../lib/store');
+var engine = require('../lib/engine').default;
 var sinon = require('sinon');
 var lolex = require('lolex');
 var assert = require('proclaim');
@@ -13,7 +13,7 @@ describe('Queue', function() {
   var clock;
 
   beforeEach(function() {
-    localStorage.clear();
+    engine.clear();
     clock = lolex.createClock(0);
     Schedule.setClock(clock);
 
@@ -112,10 +112,10 @@ describe('Queue', function() {
   });
 
   it('should take over a queued task if a queue is abandoned', function() {
-    // set up a fake queue
-    var fakeQueue = store('test', 'fake-id');
-    fakeQueue.ack.set(0); // fake timers starts at time 0
-    fakeQueue.queue.set([{
+    // a wild queue of interest appears
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, 0); // fake timers starts at time 0
+    foundQueue.set(foundQueue.keys.QUEUE, [{
       item: 'a',
       time: 0,
       attemptNumber: 0
@@ -138,9 +138,9 @@ describe('Queue', function() {
 
   it('should take over an in-progress task if a queue is abandoned', function() {
     // set up a fake queue
-    var fakeQueue = store('test', 'fake-id');
-    fakeQueue.ack.set(-15000);
-    fakeQueue.inProgress.set({
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.IN_PROGRESS, {
       'task-id': {
         item: 'a',
         time: 0,
@@ -165,14 +165,14 @@ describe('Queue', function() {
 
   it('should take over multiple tasks if a queue is abandoned', function() {
     // set up a fake queue
-    var fakeQueue = store('test', 'fake-id');
-    fakeQueue.ack.set(-15000);
-    fakeQueue.queue.set([{
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.QUEUE, [{
       item: 'a',
       time: 0,
       attemptNumber: 0
     }]);
-    fakeQueue.inProgress.set({
+    foundQueue.set(foundQueue.keys.IN_PROGRESS, {
       'task-id': {
         item: 'b',
         time: 1,
@@ -288,4 +288,3 @@ describe('end-to-end', function() {
     queue.addItem({ a: 'b' });
   });
 });
-

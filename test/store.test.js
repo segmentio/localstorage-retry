@@ -1,45 +1,61 @@
 'use strict';
 
-var StoreItem = require('../lib/store').StoreItem;
-var localStorage = require('../lib/localStorage').localStorage;
+var Store = require('../lib/store');
+var engine = require('../lib/engine').default;
 var assert = require('proclaim');
+var each = require('@ndhoule/each');
 
-describe('StoreItem', function() {
-  var item;
+describe('Store', function() {
+  var store;
+  var keys = {
+    IN_PROGRESS: 'inProgress',
+    QUEUE: 'queue',
+    ACK: 'ack',
+    RECLAIM_START: 'reclaimStart',
+    RECLAIM_END: 'reclaimEnd'
+  };
 
   beforeEach(function() {
-    localStorage.clear();
-    item = new StoreItem('key');
+    engine.clear();
+    store = new Store('name', 'id', keys, engine);
   });
 
   describe('.get', function() {
     it('should default to null', function() {
-      assert.strictEqual(item.get(), null);
+      each(function(k) {
+        assert.strictEqual(store.get(k), null);
+      }, keys);
     });
 
     it('should de-serialize json', function() {
-      localStorage.setItem('key', '["a","b",{}]');
-      assert.deepEqual(item.get(), [ 'a', 'b', {} ]);
+      each(function(k) {
+        engine.setItem('name.id.' + k, '["a","b",{}]');
+        assert.deepEqual(store.get(k), [ 'a', 'b', {} ]);
+      }, keys);
     });
 
     it('should return null if value is not valid json', function() {
-      localStorage.setItem('key', '[{]}');
-      assert.strictEqual(item.get(), null);
+      engine.setItem('name.id.queue', '[{]}');
+      assert.strictEqual(store.get(keys.QUEUE), null);
     });
   });
 
   describe('.set', function() {
     it('should serialize json', function() {
-      item.set(['a', 'b', {}]);
-      assert.strictEqual(localStorage.getItem('key'), '["a","b",{}]');
+      each(function(k) {
+        store.set(k, ['a', 'b', {}]);
+        assert.strictEqual(engine.getItem('name.id.' + k), '["a","b",{}]');
+      }, keys);
     });
   });
 
   describe('.remove', function() {
     it('should remove the item', function() {
-      localStorage.setItem('key', '"a"');
-      item.remove();
-      assert.strictEqual(localStorage.getItem('key'), null);
+      each(function(k) {
+        store.set(k, '"a"');
+        store.remove(k);
+        assert.strictEqual(engine.getItem('name.id.' + k), null);
+      }, keys);
     });
   });
 });

@@ -56,13 +56,13 @@ Can be overridden to provide custom logic for whether to requeue the item. (Defa
 queue.shouldRetry = function(item, attemptNumber, error) {
   // based on something in the item itself
   if (new Date(item.timestamp) - new Date() > 86400000) return false;
-  
+
   // max attempts
   if (attemptNumber > 3) return false;
-  
+
   // selective error handling
   if (error.code === '429') return false;
-  
+
   return true;
 }
 ```
@@ -85,7 +85,7 @@ queue.stop();
 
 ## Emitter
 
-You can listen for `processed` events, which are emitted with each invocation of the `processFunc` and passed any error or response provided along with the item itself. 
+You can listen for `processed` events, which are emitted with each invocation of the `processFunc` and passed any error or response provided along with the item itself.
 
 If a message is discarded entirely because it does not pass your `shouldRetry` logic upon attempted re-enqueuing, the queue will emit a `discard` event.
 
