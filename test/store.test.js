@@ -95,9 +95,7 @@ describe('Store', function() {
         err.code = 22;
         throw err;
       };
-      assert.strictEqual(store.engine, engine);
       store.set(keys.QUEUE, 'other');
-      assert.strictEqual(store.engine, inMemoryEngine);
       assert.strictEqual(store.get(keys.QUEUE), 'other');
     });
   });
