@@ -87,6 +87,29 @@ describe('Store', function() {
     });
 
     it('should swap upon quotaExceeded on set', function() {
+      var lsProxy =  {
+        length: function() {
+          return window.localStorage.length();
+        },
+        setItem: function(k, v) {
+          return window.localStorage.setItem(k, v);
+        },
+        getItem: function(k) {
+          return window.localStorage.getItem(k);
+        },
+        removeItem: function(k) {
+          return window.localStorage.removeItem(k);
+        },
+        clear: function() {
+          return window.localStorage.clear();
+        },
+        key: function(i) {
+          return window.localStorage.key(i);
+        }
+      };
+
+      store = new Store('name', 'id', keys, lsProxy);
+
       each(function(v) {
         store.set(v, 'stuff');
       }, keys);
