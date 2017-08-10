@@ -91,9 +91,8 @@ describe('Store', function() {
         store.set(v, 'stuff');
       }, keys);
       store.engine.setItem = function() {
-        var err = new Error('Bruh.');
-        err.code = 22;
-        throw err;
+        // eslint-disable-next-line no-throw-literal
+        throw { code: 22 };
       };
       store.set(keys.QUEUE, 'other');
       assert.strictEqual(store.get(keys.QUEUE), 'other');
