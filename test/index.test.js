@@ -2,7 +2,7 @@
 
 var Queue = require('../');
 var Store = require('../lib/store');
-var engine = require('../lib/engine').default;
+var engine = require('../lib/engine').defaultEngine;
 var sinon = require('sinon');
 var lolex = require('lolex');
 var assert = require('proclaim');

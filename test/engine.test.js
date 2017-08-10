@@ -1,7 +1,7 @@
 'use strict';
 
-var defaultEngine = require('../lib/engine').default;
-var inMemoryStore = require('../lib/engine').inMemoryStore;
+var defaultEngine = require('../lib/engine').defaultEngine;
+var inMemoryEngine = require('../lib/engine').inMemoryEngine;
 var assert = require('proclaim');
 
 // Skip the "supported" tests when its not actually supported
@@ -34,7 +34,7 @@ describe('localStorage', function() {
 
   describe('when not supported', function() {
     beforeEach(function() {
-      engine = inMemoryStore;
+      engine = inMemoryEngine;
       engine.clear();
     });
 

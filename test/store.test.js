@@ -1,7 +1,7 @@
 'use strict';
 
 var Store = require('../lib/store');
-var engine = require('../lib/engine').default;
+var engine = require('../lib/engine').defaultEngine;
 var assert = require('proclaim');
 var each = require('@ndhoule/each');
 
