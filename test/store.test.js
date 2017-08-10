@@ -60,8 +60,30 @@ describe('Store', function() {
     });
   });
 
+  describe('._createValidKey', function() {
+    it('should return compound if no keys specd', function() {
+      store = new Store('name', 'id');
+      assert.strictEqual(store._createValidKey('test'), 'name.id.test');
+    });
+
+    it('should return undefined if invalid key', function() {
+      store = new Store('name', 'id', { nope: 'wrongKey' });
+      assert.strictEqual(store._createValidKey('test'), undefined);
+    });
+
+    it('should return compound if valid key', function() {
+      assert.strictEqual(store._createValidKey('queue'), 'name.id.queue');
+    });
+  });
+
   describe('._swapEngine', function() {
-    it('should switch to the inMem upon quotaExceeded', function() {
+    it('should switch the underlying storage mechanism', function() {
+      assert.strictEqual(store.engine, engine);
+      store._swapEngine();
+      assert.strictEqual(store.engine, inMemoryEngine);
+    });
+
+    it('should swap upon quotaExceeded on set', function() {
       each(function(v) {
         store.set(v, 'stuff');
       }, keys);
