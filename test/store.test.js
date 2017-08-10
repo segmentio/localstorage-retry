@@ -92,7 +92,7 @@ describe('Store', function() {
       }, keys);
       store.engine.setItem = function() {
         // eslint-disable-next-line no-throw-literal
-        throw { code: 22 };
+        throw { code: 22, number: -2147024882 };
       };
       store.set(keys.QUEUE, 'other');
       assert.strictEqual(store.get(keys.QUEUE), 'other');
