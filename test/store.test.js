@@ -76,7 +76,10 @@ describe('Store', function() {
     });
   });
 
-  describe('._swapEngine', function() {
+  // Skip the "swap" tests when not applicable
+  var xdescribe = window.localStorage ? describe : describe.skip;
+
+  xdescribe('._swapEngine', function() {
     it('should switch the underlying storage mechanism', function() {
       assert.strictEqual(store.engine, engine);
       store._swapEngine();
