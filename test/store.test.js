@@ -52,7 +52,7 @@ describe('Store', function() {
   describe('.remove', function() {
     it('should remove the item', function() {
       each(function(k) {
-        store.set(k, '"a"');
+        store.set(k, 'a');
         store.remove(k);
         assert.strictEqual(engine.getItem('name.id.' + k), null);
       }, keys);
