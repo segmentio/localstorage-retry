@@ -1,4 +1,10 @@
 
+1.1.0 / 2017-08-11
+==================
+
+ * Minor Refactor
+ * Fallback to in-memory storage engine in the event of exceeding localStorage quota
+
 1.0.3 / 2017-08-02
 ==================
 
