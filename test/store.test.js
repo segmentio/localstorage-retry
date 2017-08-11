@@ -88,9 +88,7 @@ describe('Store', function() {
 
     it('should swap upon quotaExceeded on set', function() {
       var lsProxy =  {
-        length: function() {
-          return window.localStorage.length();
-        },
+        length: window.localStorage.length,
         setItem: function(k, v) {
           return window.localStorage.setItem(k, v);
         },
