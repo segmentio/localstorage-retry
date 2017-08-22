@@ -10,7 +10,9 @@ Each page maintains its own list of queued and in-progress tasks, while constant
 
 ## API
 
-### new Queue(name, processFunc(item, done(err, res)))
+### new Queue(name, [opts], processFunc(item, done(err, res)))
+
+You can omit the `opts` argument to initialize the queue with defaults:
 
 ```javascript
 var Queue = require('@segment/localstorage-retry');
@@ -30,6 +32,33 @@ queue.on('processed', function(err, res, item) {
 queue.start();
 ```
 
+### Options
+
+The queue can be initialized with the following options (*defaults shown*):
+
+```js
+var options = {
+  ackTimer: 1000,        // ack interval in ms
+  reclaimTimer: 3000,    // (3s)
+  reclaimTimeout: 10000, // (10s)
+  reclaimWait: 500,      // (.5s)
+  minRetryDelay: 1000,   // min retry delay in ms (used in exp. backoff calcs)
+  maxRetryDelay: 30000,  // max retry delay in ms (used in exp. backoff calcs)
+  backoffFactor: 2,      // exponential backoff factor (^2)
+  backoffJitter: 0,      // jitter factor for backoff calcs
+  maxItems: 100          // queue high water mark
+};
+
+var queue = new Queue('my_queue_name', opts, (item, done) => {
+  sendAsync(item, (err, res) => {
+    if (err) return done(err);
+    done(null, res);
+  });
+});
+
+queue.start();
+```
+
 ### .addItem(item)
 
 Adds an item to the queue
@@ -38,14 +67,22 @@ Adds an item to the queue
 queue.addItem({ a: 'b' });
 ```
 
-### .getDelay
+### .getDelay `(attemptNumber) -> ms`
 
-Can be overridden to provide a custom retry delay in ms. (Defaults to `1000 * attemptNumber^2`)
+Can be overridden to provide a custom retry delay in ms.
+
+Default:
 
 ```javascript
 queue.getDelay = function(attemptNumber) {
-  return 1000 * attemptNumber;
-}
+  var ms = this.backoff.MIN_RETRY_DELAY * Math.pow(this.backoff.FACTOR, attemptNumber);
+  if (this.backoff.JITTER) {
+    var rand =  Math.random();
+    var deviation = Math.floor(rand * this.backoff.JITTER * ms);
+    ms = (Math.floor(rand * 10) & 1) == 0  ? ms - deviation : ms + deviation;
+  }
+  return Math.min(ms, this.backoff.MAX_RETRY_DELAY) | 0;
+};
 ```
 
 ### .shouldRetry `(item, attemptNumber, error) -> boolean`
