@@ -2,7 +2,7 @@
 # localstorage-retry
 [![Circle CI](https://circleci.com/gh/segmentio/localstorage-retry.svg?style=shield&circle-token=26daea4c3c8e5645f15841fdda51f14386bc5302)](https://circleci.com/gh/segmentio/localstorage-retry)
 
-Provides durable retries with a queue held in `localStorage`
+Provides durable retries with a queue held in `localStorage` (with graceful fallbacks to memory when necessary).
 
 ## How It Works
 
