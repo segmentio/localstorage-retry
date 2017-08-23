@@ -47,6 +47,7 @@ var options = {
   backoffFactor: 2,      // exponential backoff factor (attempts^n)
   backoffJitter: 0,      // jitter factor for backoff calcs (0 is usually fine)
   maxItems: Infinity     // queue high water mark (we suggest 100 as a max)
+  maxAttempts: Infinity  // max retry attempts before discarding
 };
 
 var queue = new Queue('my_queue_name', opts, (item, done) => {
@@ -100,8 +101,21 @@ queue.getDelay = function(attemptNumber) {
 
 ### .shouldRetry `(item, attemptNumber, error) -> boolean`
 
-Can be overridden to provide custom logic for whether to requeue the item. (Defaults to `true`.)
+Can be overridden to provide custom logic for whether to requeue the item. You'll likely want to use the queue instance's maxAttempts constant here.
 
+```
+this.maxAttempts = opts.maxAttempts || Infinity
+```
+
+**Default**:
+```js
+queue.shouldRetry = function(item, attemptNumber, error) {
+  if (attemptNumber > this.maxAttempts) return false;
+  return true;
+};
+```
+
+**Override Example**:
 ```javascript
 queue.shouldRetry = function(item, attemptNumber, error) {
   // based on something in the item itself
