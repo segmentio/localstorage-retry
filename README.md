@@ -69,9 +69,18 @@ queue.addItem({ a: 'b' });
 
 ### .getDelay `(attemptNumber) -> ms`
 
-Can be overridden to provide a custom retry delay in ms.
+Can be overridden to provide a custom retry delay in ms. You'll likely want to use the queue instance's backoff constants here.
 
-Default:
+```
+this.backoff = {
+  MIN_RETRY_DELAY: opts.minRetryDelay || 1000,
+  MAX_RETRY_DELAY: opts.maxRetryDelay || 30000,
+  FACTOR: opts.backoffFactor || 2,
+  JITTER: opts.backoffJitter || 0
+};
+```
+
+Default implementation:
 
 ```javascript
 queue.getDelay = function(attemptNumber) {
@@ -79,9 +88,13 @@ queue.getDelay = function(attemptNumber) {
   if (this.backoff.JITTER) {
     var rand =  Math.random();
     var deviation = Math.floor(rand * this.backoff.JITTER * ms);
-    ms = (Math.floor(rand * 10) & 1) == 0  ? ms - deviation : ms + deviation;
+    if (Math.floor(rand * 10) < 5) {
+      ms -= deviation;
+    } else {
+      ms += deviation;
+    }
   }
-  return Math.min(ms, this.backoff.MAX_RETRY_DELAY) | 0;
+  return Number(Math.min(ms, this.backoff.MAX_RETRY_DELAY).toPrecision(1));
 };
 ```
 
