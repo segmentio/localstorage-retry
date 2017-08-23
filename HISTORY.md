@@ -1,4 +1,12 @@
 
+1.2.0 / 2017-08-23
+==================
+
+ * add support for configurable retry backoffs
+ * add maxItems option to constrain max queue size
+ * add maxAttempts option to constrain number of attempts
+ * update default shouldretry and getdelay logic to take advantage of HWM and exp. backoff with jitter
+
 1.1.0 / 2017-08-11
 ==================
 
