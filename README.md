@@ -38,10 +38,6 @@ The queue can be initialized with the following options (*defaults shown*):
 
 ```js
 var options = {
-  ackTimer: 1000,        // ack interval in ms
-  reclaimTimer: 3000,    // (3s)
-  reclaimTimeout: 10000, // (10s)
-  reclaimWait: 500,      // (.5s)
   minRetryDelay: 1000,   // min retry delay in ms (used in exp. backoff calcs)
   maxRetryDelay: 30000,  // max retry delay in ms (used in exp. backoff calcs)
   backoffFactor: 2,      // exponential backoff factor (attempts^n)
