@@ -72,7 +72,7 @@ queue.addItem({ a: 'b' });
 
 Can be overridden to provide a custom retry delay in ms. You'll likely want to use the queue instance's backoff constants here.
 
-```
+```js
 this.backoff = {
   MIN_RETRY_DELAY: opts.minRetryDelay || 1000,
   MAX_RETRY_DELAY: opts.maxRetryDelay || 30000,
@@ -101,11 +101,7 @@ queue.getDelay = function(attemptNumber) {
 
 ### .shouldRetry `(item, attemptNumber, error) -> boolean`
 
-Can be overridden to provide custom logic for whether to requeue the item. You'll likely want to use the queue instance's maxAttempts constant here.
-
-```
-this.maxAttempts = opts.maxAttempts || Infinity
-```
+Can be overridden to provide custom logic for whether to requeue the item. You'll likely want to use the queue instance's `maxAttempts` variable (which is overridable via constructor's `opts` argument).
 
 **Default**:
 ```js
@@ -115,14 +111,16 @@ queue.shouldRetry = function(item, attemptNumber, error) {
 };
 ```
 
+You may also want to selectively retry based on error returned by your process function or something in the item itself.
+
 **Override Example**:
 ```javascript
 queue.shouldRetry = function(item, attemptNumber, error) {
+  // max attempts
+  if (attemptNumber > this.maxAttempts) return false;
+
   // based on something in the item itself
   if (new Date(item.timestamp) - new Date() > 86400000) return false;
-
-  // max attempts
-  if (attemptNumber > 3) return false;
 
   // selective error handling
   if (error.code === '429') return false;
