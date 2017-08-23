@@ -113,6 +113,7 @@ describe('Queue', function() {
 
   it('should respect maxItems', function() {
     for (var i = 0; i < 105; i++) {
+      clock.tick(1);
       queue.addItem(i);
     }
 
