@@ -44,9 +44,9 @@ var options = {
   reclaimWait: 500,      // (.5s)
   minRetryDelay: 1000,   // min retry delay in ms (used in exp. backoff calcs)
   maxRetryDelay: 30000,  // max retry delay in ms (used in exp. backoff calcs)
-  backoffFactor: 2,      // exponential backoff factor (^2)
-  backoffJitter: 0,      // jitter factor for backoff calcs
-  maxItems: 100          // queue high water mark
+  backoffFactor: 2,      // exponential backoff factor (attempts^n)
+  backoffJitter: 0,      // jitter factor for backoff calcs (0 is usually fine)
+  maxItems: Infinity     // queue high water mark (we suggest 100 as a max)
 };
 
 var queue = new Queue('my_queue_name', opts, (item, done) => {
