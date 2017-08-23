@@ -111,6 +111,20 @@ describe('Queue', function() {
     assert(queue.fn.notCalled);
   });
 
+  it('should respect maxItems', function() {
+    queue.maxItems = 100;
+
+    for (var i = 0; i < 105; i++) {
+      clock.tick(1);
+      queue.addItem(i);
+    }
+
+    var _queue = queue._store.get(queue.keys.QUEUE);
+    assert.equal(_queue.length, 100);
+    assert.equal(_queue[0].item, 5);
+    assert.equal(_queue[99].item, 104);
+  });
+
   it('should take over a queued task if a queue is abandoned', function() {
     // a wild queue of interest appears
     var foundQueue = new Store('test', 'fake-id', queue.keys);

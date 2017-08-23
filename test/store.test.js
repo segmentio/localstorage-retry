@@ -18,7 +18,7 @@ describe('Store', function() {
 
   beforeEach(function() {
     engine.clear();
-    store = new Store('name', 'id', keys, engine);
+    store = new Store('name', 'id', keys);
   });
 
   describe('.get', function() {

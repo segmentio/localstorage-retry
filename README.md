@@ -2,7 +2,7 @@
 # localstorage-retry
 [![Circle CI](https://circleci.com/gh/segmentio/localstorage-retry.svg?style=shield&circle-token=26daea4c3c8e5645f15841fdda51f14386bc5302)](https://circleci.com/gh/segmentio/localstorage-retry)
 
-Provides durable retries with a queue held in `localStorage`
+Provides durable retries with a queue held in `localStorage` (with graceful fallbacks to memory when necessary).
 
 ## How It Works
 
@@ -10,7 +10,9 @@ Each page maintains its own list of queued and in-progress tasks, while constant
 
 ## API
 
-### new Queue(name, processFunc(item, done(err, res)))
+### new Queue(name, [opts], processFunc(item, done(err, res)))
+
+You can omit the `opts` argument to initialize the queue with defaults:
 
 ```javascript
 var Queue = require('@segment/localstorage-retry');
@@ -30,6 +32,30 @@ queue.on('processed', function(err, res, item) {
 queue.start();
 ```
 
+### Options
+
+The queue can be initialized with the following options (*defaults shown*):
+
+```js
+var options = {
+  minRetryDelay: 1000,   // min retry delay in ms (used in exp. backoff calcs)
+  maxRetryDelay: 30000,  // max retry delay in ms (used in exp. backoff calcs)
+  backoffFactor: 2,      // exponential backoff factor (attempts^n)
+  backoffJitter: 0,      // jitter factor for backoff calcs (0 is usually fine)
+  maxItems: Infinity     // queue high water mark (we suggest 100 as a max)
+  maxAttempts: Infinity  // max retry attempts before discarding
+};
+
+var queue = new Queue('my_queue_name', opts, (item, done) => {
+  sendAsync(item, (err, res) => {
+    if (err) return done(err);
+    done(null, res);
+  });
+});
+
+queue.start();
+```
+
 ### .addItem(item)
 
 Adds an item to the queue
@@ -38,27 +64,59 @@ Adds an item to the queue
 queue.addItem({ a: 'b' });
 ```
 
-### .getDelay
+### .getDelay `(attemptNumber) -> ms`
 
-Can be overridden to provide a custom retry delay in ms. (Defaults to `1000 * attemptNumber^2`)
+Can be overridden to provide a custom retry delay in ms. You'll likely want to use the queue instance's backoff constants here.
+
+```js
+this.backoff = {
+  MIN_RETRY_DELAY: opts.minRetryDelay || 1000,
+  MAX_RETRY_DELAY: opts.maxRetryDelay || 30000,
+  FACTOR: opts.backoffFactor || 2,
+  JITTER: opts.backoffJitter || 0
+};
+```
+
+Default implementation:
 
 ```javascript
 queue.getDelay = function(attemptNumber) {
-  return 1000 * attemptNumber;
-}
+  var ms = this.backoff.MIN_RETRY_DELAY * Math.pow(this.backoff.FACTOR, attemptNumber);
+  if (this.backoff.JITTER) {
+    var rand =  Math.random();
+    var deviation = Math.floor(rand * this.backoff.JITTER * ms);
+    if (Math.floor(rand * 10) < 5) {
+      ms -= deviation;
+    } else {
+      ms += deviation;
+    }
+  }
+  return Number(Math.min(ms, this.backoff.MAX_RETRY_DELAY).toPrecision(1));
+};
 ```
 
 ### .shouldRetry `(item, attemptNumber, error) -> boolean`
 
-Can be overridden to provide custom logic for whether to requeue the item. (Defaults to `true`.)
+Can be overridden to provide custom logic for whether to requeue the item. You'll likely want to use the queue instance's `maxAttempts` variable (which is overridable via constructor's `opts` argument).
 
+**Default**:
+```js
+queue.shouldRetry = function(item, attemptNumber, error) {
+  if (attemptNumber > this.maxAttempts) return false;
+  return true;
+};
+```
+
+You may also want to selectively retry based on error returned by your process function or something in the item itself.
+
+**Override Example**:
 ```javascript
 queue.shouldRetry = function(item, attemptNumber, error) {
+  // max attempts
+  if (attemptNumber > this.maxAttempts) return false;
+
   // based on something in the item itself
   if (new Date(item.timestamp) - new Date() > 86400000) return false;
-
-  // max attempts
-  if (attemptNumber > 3) return false;
 
   // selective error handling
   if (error.code === '429') return false;
