@@ -46,7 +46,7 @@ var options = {
   maxAttempts: Infinity  // max retry attempts before discarding
 };
 
-var queue = new Queue('my_queue_name', opts, (item, done) => {
+var queue = new Queue('my_queue_name', options, (item, done) => {
   sendAsync(item, (err, res) => {
     if (err) return done(err);
     done(null, res);
