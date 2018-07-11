@@ -209,6 +209,34 @@ describe('Queue', function() {
     assert(queue.fn.calledWith('a'));
     assert(queue.fn.calledWith('b'));
   });
+
+  it('should respect maxAttempts when rejected', function() {
+    var calls = new Array(100);
+
+    queue.maxItems = calls.length;
+    queue.maxAttempts = 2;
+
+    queue.fn = function(item, done) {
+      if (!calls[item.index]) {
+        calls[item.index] = 1;
+      } else {
+        calls[item.index]++;
+      }
+
+      done(new Error());
+    };
+
+    for (var i = 0; i < calls.length; i++) {
+      queue.addItem({ index: i });
+    }
+
+    queue.start();
+
+    clock.tick(queue.getDelay(1) + queue.getDelay(2));
+    calls.forEach(function(call) {
+      assert(call === queue.maxAttempts + 1);
+    });
+  });
 });
 
 describe('events', function() {
