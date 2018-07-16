@@ -1,4 +1,10 @@
 
+1.2.1 / 2018-07-11
+==================
+
+ * [Fix](https://github.com/segmentio/localstorage-retry/pull/10): Fix object loss when adding multiple items to the queue.
+
+
 1.2.0 / 2017-08-23
 ==================
 

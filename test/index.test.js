@@ -209,6 +209,91 @@ describe('Queue', function() {
     assert(queue.fn.calledWith('a'));
     assert(queue.fn.calledWith('b'));
   });
+
+  it('should respect maxAttempts when rejected', function() {
+    var calls = new Array(100);
+
+    queue.maxItems = calls.length;
+    queue.maxAttempts = 2;
+
+    queue.fn = function(item, done) {
+      if (!calls[item.index]) {
+        calls[item.index] = 1;
+      } else {
+        calls[item.index]++;
+      }
+
+      done(new Error());
+    };
+
+    for (var i = 0; i < calls.length; i++) {
+      queue.addItem({ index: i });
+    }
+
+    queue.start();
+
+    clock.tick(queue.getDelay(1) + queue.getDelay(2));
+    calls.forEach(function(call) {
+      assert(call === queue.maxAttempts + 1);
+    });
+  });
+
+  it('should limit inProgress using maxItems', function() {
+    var waiting = [];
+    var i;
+
+    queue.maxItems = 100;
+    queue.maxAttempts = 2;
+    queue.fn = function(_, done) {
+      waiting.push(done);
+    };
+
+    // add maxItems * 2 items
+    for (i = 0; i < queue.maxItems * 2; i++) {
+      queue.addItem({ index: i });
+    }
+    
+    // the queue should be full
+    assert(size(queue).queue === queue.maxItems);
+
+    queue.start();
+    // the queue is now empty and everything is in progress
+    assert(size(queue).queue === 0);
+    assert(size(queue).inProgress === queue.maxItems);
+
+    // while the items are in progress let's add maxItems times two items
+    for (i = 0; i < queue.maxItems * 2; i++) {
+      queue.addItem({ index: i });
+    }
+
+    // inProgress and queue should be full
+    assert(size(queue).queue === queue.maxItems);
+    assert(size(queue).inProgress === queue.maxItems);
+    assert(waiting.length === queue.maxItems);
+
+    // resolved all waiting items
+    while (waiting.length) {
+      waiting.pop()();
+    }
+
+    // inProgress should now be empty
+    assert(size(queue).queue === queue.maxItems);
+    assert(size(queue).inProgress === 0);
+
+    // wait for the queue to be processed
+    clock.tick(queue.getDelay(0));
+
+    // items should now be in progress
+    assert(size(queue).queue === 0);
+    assert(size(queue).inProgress === queue.maxItems);
+
+    function size(queue) {
+      return {
+        queue: queue._store.get(queue.keys.QUEUE).length,
+        inProgress: Object.keys(queue._store.get(queue.keys.IN_PROGRESS) || {}).length
+      };
+    }
+  });
 });
 
 describe('events', function() {
