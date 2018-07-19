@@ -1,9 +1,14 @@
 
+1.2.2 / 2018-07-19
+==================
+
+ * [Fix](https://github.com/segmentio/localstorage-retry/pull/13): Respect attempts when reclaiming queue
+ * [Fix](https://github.com/segmentio/localstorage-retry/pull/11): Limit inProgress using maxItems
+
 1.2.1 / 2018-07-11
 ==================
 
  * [Fix](https://github.com/segmentio/localstorage-retry/pull/10): Fix object loss when adding multiple items to the queue.
-
 
 1.2.0 / 2017-08-23
 ==================
