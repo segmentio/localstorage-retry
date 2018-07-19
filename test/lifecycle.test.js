@@ -91,7 +91,6 @@ function createTestQueue(tab, options) {
 
 var ONE_SECOND = 1000;
 var ONE_MINUTE = 60 * ONE_SECOND;
-var ONE_HOUR = 60 * ONE_MINUTE;
 
 // Mocks a browser tab with its own clock
 function openTab(options, fn) {
@@ -102,7 +101,7 @@ function openTab(options, fn) {
     wait: function(condition) {
       var clock = tab.clock;
       var start = clock.now;
-      var timeout = 3 * ONE_HOUR;
+      var timeout = 15 * ONE_MINUTE;
 
       while (!condition()) {
         if (clock.now - start > timeout || !clock.timers) {
