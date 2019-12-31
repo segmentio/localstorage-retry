@@ -344,9 +344,10 @@ describe('events', function() {
     queue.shouldRetry = function(item, attemptNumber) {
       return attemptNumber < 2;
     };
-    queue.on('discard', function(item, attempts) {
+    queue.on('discard', function(item, attempts, error) {
       assert.equal(item.a, 'b');
       assert.equal(attempts, 2);
+      assert.equal(error.message, 'no');
       done();
     });
     queue.start();

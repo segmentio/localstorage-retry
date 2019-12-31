@@ -159,8 +159,8 @@ queue.on('processed', function(err, res, item) {
 ### `discard`
 
 ```javascript
-queue.on('discard', function(item, attempts) {
-  console.error('discarding message %O after %d attempts', item, attempts);
+queue.on('discard', function(item, attempts, error) {
+  console.error('discarding message %O after %d attempts with last known error %O', item, attempts, error);
 })
 ```
 
