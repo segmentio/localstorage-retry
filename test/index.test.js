@@ -211,7 +211,6 @@ describe('Queue', function() {
   });
 
   describe('while using in memory engine', function() {
-
     beforeEach(function() {
       queue._store._swapEngine();
     });
