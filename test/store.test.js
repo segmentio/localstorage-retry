@@ -86,6 +86,12 @@ describe('Store', function() {
       assert.strictEqual(store.engine, inMemoryEngine);
     });
 
+    it('should not switch the original storage mechanism', function() {
+      assert.strictEqual(store.getOriginalEngine(), engine);
+      store._swapEngine();
+      assert.strictEqual(store.getOriginalEngine(), engine);
+    });
+
     it('should swap upon quotaExceeded on set', function() {
       var lsProxy =  {
         length: window.localStorage.length,

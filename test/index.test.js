@@ -210,6 +210,97 @@ describe('Queue', function() {
     assert(queue.fn.calledWith('b'));
   });
 
+  describe('while using in memory engine', function() {
+    beforeEach(function() {
+      queue._store._swapEngine();
+    });
+
+    it('should take over a queued task if a queue is abandoned', function() {
+      // a wild queue of interest appears
+      var foundQueue = new Store('test', 'fake-id', queue.keys);
+      foundQueue.set(foundQueue.keys.ACK, 0); // fake timers starts at time 0
+      foundQueue.set(foundQueue.keys.QUEUE, [{
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      }]);
+  
+      // wait for the queue to expire
+      clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+  
+      queue.start();
+  
+      // wait long enough for the other queue to expire and be reclaimed
+      clock.tick(
+        queue.timeouts.RECLAIM_TIMER
+        + queue.timeouts.RECLAIM_WAIT * 2
+      );
+  
+      assert(queue.fn.calledOnce);
+      assert(queue.fn.calledWith('a'));
+    });
+  
+    it('should take over an in-progress task if a queue is abandoned', function() {
+      // set up a fake queue
+      var foundQueue = new Store('test', 'fake-id', queue.keys);
+      foundQueue.set(foundQueue.keys.ACK, -15000);
+      foundQueue.set(foundQueue.keys.IN_PROGRESS, {
+        'task-id': {
+          item: 'a',
+          time: 0,
+          attemptNumber: 0
+        }
+      });
+  
+      // wait for the queue to expire
+      clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+  
+      queue.start();
+  
+      // wait long enough for the other queue to expire and be reclaimed
+      clock.tick(
+        queue.timeouts.RECLAIM_TIMER
+        + queue.timeouts.RECLAIM_WAIT * 2
+      );
+  
+      assert(queue.fn.calledOnce);
+      assert(queue.fn.calledWith('a'));
+    });
+  
+    it('should take over multiple tasks if a queue is abandoned', function() {
+      // set up a fake queue
+      var foundQueue = new Store('test', 'fake-id', queue.keys);
+      foundQueue.set(foundQueue.keys.ACK, -15000);
+      foundQueue.set(foundQueue.keys.QUEUE, [{
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      }]);
+      foundQueue.set(foundQueue.keys.IN_PROGRESS, {
+        'task-id': {
+          item: 'b',
+          time: 1,
+          attemptNumber: 0
+        }
+      });
+  
+      // wait for the queue to expire
+      clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+  
+      queue.start();
+  
+      // wait long enough for the other queue to expire and be reclaimed
+      clock.tick(
+        queue.timeouts.RECLAIM_TIMER
+        + queue.timeouts.RECLAIM_WAIT * 2
+      );
+  
+      assert(queue.fn.calledTwice);
+      assert(queue.fn.calledWith('a'));
+      assert(queue.fn.calledWith('b'));
+    });
+  });
+
   it('should respect maxAttempts when rejected', function() {
     var calls = new Array(100);
 
