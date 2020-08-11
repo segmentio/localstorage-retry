@@ -1,4 +1,8 @@
-# 1.2.3 / 2020-10-05
+# 1.2.4 / 2020-08-11
+
+- [Fix](https://github.com/segmentio/localstorage-retry/pull/21): Modified reclaim to run on original engine with tests 
+
+# 1.2.3 / 2020-05-10
 
 - [Fix](https://github.com/segmentio/localstorage-retry/pull/17): Re order keys to delete ack last
 
