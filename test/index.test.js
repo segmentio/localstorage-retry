@@ -177,6 +177,169 @@ describe('Queue', function() {
     assert(queue.fn.calledWith('a'));
   });
 
+  it('should deduplicate ids when reclaiming abandoned queue tasks', function() {
+    // set up a fake queue
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.QUEUE, [
+      {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      },
+      {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      }
+    ]);
+
+    // wait for the queue to expire
+    clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+
+    queue.start();
+
+    // wait long enough for the other queue to expire and be reclaimed
+    clock.tick(
+      queue.timeouts.RECLAIM_TIMER
+      + queue.timeouts.RECLAIM_WAIT * 2
+    );
+
+    assert(queue.fn.calledOnce);
+    assert(queue.fn.calledWith('a'));
+  });
+
+  it('should deduplicate ids when reclaiming abandoned in-progress tasks', function() {
+    // set up a fake queue
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.IN_PROGRESS, {
+      'task-id-0': {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      },
+      'task-id-1': {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      }
+    });
+
+    // wait for the queue to expire
+    clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+
+    queue.start();
+
+    // wait long enough for the other queue to expire and be reclaimed
+    clock.tick(
+      queue.timeouts.RECLAIM_TIMER
+      + queue.timeouts.RECLAIM_WAIT * 2
+    );
+
+    assert(queue.fn.calledOnce);
+    assert(queue.fn.calledWith('a'));
+  });
+
+  it('should deduplicate ids when reclaiming abandoned in-progress and queue tasks', function() {
+    // set up a fake queue
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.IN_PROGRESS, {
+      'task-id-0': {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      },
+      'task-id-1': {
+        item: 'b',
+        time: 0,
+        attemptNumber: 0,
+        id: '456'
+      }
+    });
+
+    foundQueue.set(foundQueue.keys.QUEUE, [
+      {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0,
+        id: '123'
+      },
+      {
+        item: 'b',
+        time: 0,
+        attemptNumber: 0,
+        id: '456'
+      }
+    ]);
+
+    // wait for the queue to expire
+    clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+
+    queue.start();
+
+    // wait long enough for the other queue to expire and be reclaimed
+    clock.tick(
+      queue.timeouts.RECLAIM_TIMER
+      + queue.timeouts.RECLAIM_WAIT * 2
+    );
+
+    assert(queue.fn.callCount === 2);
+    assert(queue.fn.calledWith('a'));
+    assert(queue.fn.calledWith('b'));
+  });
+  
+  it('should not deduplicate tasks when ids are not set during reclaim', function() {
+    // set up a fake queue
+    var foundQueue = new Store('test', 'fake-id', queue.keys);
+    foundQueue.set(foundQueue.keys.ACK, -15000);
+    foundQueue.set(foundQueue.keys.IN_PROGRESS, {
+      'task-id-0': {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      },
+      'task-id-1': {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      }
+    });
+
+    foundQueue.set(foundQueue.keys.QUEUE, [
+      {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      },
+      {
+        item: 'a',
+        time: 0,
+        attemptNumber: 0
+      }
+    ]);
+
+    // wait for the queue to expire
+    clock.tick(queue.timeouts.RECLAIM_TIMEOUT);
+
+    queue.start();
+
+    // wait long enough for the other queue to expire and be reclaimed
+    clock.tick(
+      queue.timeouts.RECLAIM_TIMER
+      + queue.timeouts.RECLAIM_WAIT * 2
+    );
+
+    assert(queue.fn.callCount === 4);
+    assert(queue.fn.alwaysCalledWith('a'));
+  });
+
   it('should take over multiple tasks if a queue is abandoned', function() {
     // set up a fake queue
     var foundQueue = new Store('test', 'fake-id', queue.keys);
