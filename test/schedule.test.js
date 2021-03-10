@@ -31,7 +31,7 @@ describe('Schedule', function() {
     it('should call task after timeout even after long duration', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
-      schedule.run(spyFn, timeout, false, false);
+      schedule.run(spyFn, timeout);
       clock.setSystemTime(timeout * 2);
       clock.tick(timeout);
       assert(spyFn.calledOnce);
@@ -40,7 +40,7 @@ describe('Schedule', function() {
     it('should not call task if past duration factor', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
-      schedule.run(spyFn, timeout, true, false);
+      schedule.run(spyFn, timeout, Schedule.MODES.ABANDON);
       // Fast forwards time but doesnt trigger timers
       clock.setSystemTime(timeout * 2);
       // Trigger timers here
@@ -54,7 +54,7 @@ describe('Schedule', function() {
     it('should reschedule and call task if skipped', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
-      schedule.run(spyFn, timeout, true, true);
+      schedule.run(spyFn, timeout, Schedule.MODES.RESCHEDULE);
       // Fast forwards time but doesnt trigger timers
       clock.setSystemTime(timeout * 2);
       // Trigger timers here
