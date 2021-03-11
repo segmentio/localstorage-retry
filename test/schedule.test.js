@@ -28,16 +28,16 @@ describe('Schedule', function() {
       assert(spyFn.calledOnce);
     });
 
-    it('should call task after timeout even after long duration', function() {
+    it('should call task ASAP after timeout even after long duration', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
-      schedule.run(spyFn, timeout);
+      schedule.run(spyFn, timeout, Schedule.Modes.ASAP);
       clock.setSystemTime(timeout * 2);
       clock.tick(timeout);
       assert(spyFn.calledOnce);
     });
 
-    it('should not call task if past duration factor', function() {
+    it('should not call ABANDON task if past duration factor', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
       schedule.run(spyFn, timeout, Schedule.Modes.ABANDON);
@@ -51,7 +51,16 @@ describe('Schedule', function() {
       assert(spyFn.notCalled);
     });
 
-    it('should reschedule and call task if skipped', function() {
+    it('should call ABANDON task if running on time', function() {
+      var timeout = 500;
+      var spyFn = sinon.spy();
+      schedule.run(spyFn, timeout, Schedule.Modes.ABANDON);
+
+      clock.tick(timeout);
+      assert(spyFn.calledOnce);
+    });
+
+    it('should RESCHEDULE and call task if skipped', function() {
       var timeout = 500;
       var spyFn = sinon.spy();
       schedule.run(spyFn, timeout, Schedule.Modes.RESCHEDULE);
