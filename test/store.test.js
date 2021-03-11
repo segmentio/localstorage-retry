@@ -86,10 +86,10 @@ describe('Store', function() {
       assert.strictEqual(store.engine, inMemoryEngine);
     });
 
-    it('should not switch the original storage mechanism', function() {
-      assert.strictEqual(store.getOriginalEngine(), engine);
+    it('should not switch the reclaim storage mechanism', function() {
+      assert.strictEqual(store.getReclaimEngine(), engine);
       store._swapEngine();
-      assert.strictEqual(store.getOriginalEngine(), engine);
+      assert.strictEqual(store.getReclaimEngine(), engine);
     });
 
     it('should swap upon quotaExceeded on set', function() {
