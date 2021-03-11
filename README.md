@@ -149,6 +149,8 @@ If a message is discarded entirely because it does not pass your `shouldRetry` l
 
 If the queue is reclaiming events from an abandonded queue, and sees duplicate entries, we will keep the first, and discard the rest, emitting a `duplication` event for each.
 
+If a message is discarded because the queue exceeds `maxItems`, the queue will emit an `overflow` event.
+
 ### `processed`
 
 ```javascript
@@ -171,6 +173,13 @@ queue.on('discard', function(item, attempts) {
 ```javascript
 queue.on('duplication', function(item, attempts) {
   console.error('discarding message %O due to duplicate entries', item, attempts);
+```
+
+### `overflow`
+
+```javascript
+queue.on('overflow', function(item, attempts) {
+  console.error('discarding message %O after %d attempts due to queue overflow', item, attempts);
 })
 ```
 
