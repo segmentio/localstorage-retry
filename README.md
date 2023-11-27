@@ -2,6 +2,9 @@
 # localstorage-retry
 [![Circle CI](https://circleci.com/gh/segmentio/localstorage-retry.svg?style=shield&circle-token=26daea4c3c8e5645f15841fdda51f14386bc5302)](https://circleci.com/gh/segmentio/localstorage-retry)
 
+> [!NOTE]
+> Segment has paused maintenance on this project, but may return it to an active status in the future. Issues and pull requests from external contributors are not being considered, although internal contributions may appear from time to time. The project remains available under its open source license for anyone to use.
+
 Provides durable retries with a queue held in `localStorage` (with graceful fallbacks to memory when necessary).
 
 ## How It Works
